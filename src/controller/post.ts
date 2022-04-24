@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import Post from "../model/post";
 import User from "../model/user";
 
@@ -10,7 +11,9 @@ const createPost = async (_: any, arg: any) => {
             image: request.image,
             description: request.description,
             tag: "",
+            numLikes: 0,
             likes: [],
+            numComments: 0,
             comments: [],
             isDeleted: false,
         });
@@ -34,9 +37,17 @@ const getAllPost = async () => {
                 date: post.createdAt.toISOString(),
                 tag: post.tag,
                 description: post.description,
+                numLikes: post.numLikes,
+                numComments: post.numComments,
                 likes: post.likes,
-                comments: post.comments,
-            })
+                comments: {
+                    id: post._id,
+                    userId: post.userId,
+                    userFullName: post.userFullName,
+                    description: post.description,
+                    createdAt: post.createdAt,
+                },
+            });
         }
         return allPost;
     } catch (err) {
@@ -44,4 +55,58 @@ const getAllPost = async () => {
     }
 }
 
-export { createPost, getAllPost };
+const getPost = async (_: any, arg: any) => {
+    const { id } = arg;
+    try {
+        const post = await Post.findById(id);
+        const user = await User.findById(post.userId);
+        const res = {
+            id: post._id,
+            userId: post.userId!,
+            userFullName: user.fullName,
+            image: post.image,
+            date: post.createdAt.toISOString(),
+            tag: post.tag,
+            description: post.description,
+            numLikes: post.numLikes,
+            numComments: post.numComments,
+            likes: post.likes,
+            comments: post.comments.map((comment: any) => {
+                return {
+                    id: comment._id,
+                    userId: comment.userId!,
+                    userFullName: comment.userFullName,
+                    description: comment.description,
+                    createdAt: comment.createdAt.toISOString(),
+                }
+            }),
+        };
+        return res;
+    } catch (err) {
+        //TODO: handle error
+    }
+}
+
+const commentPost = async (_: any, arg: any) => {
+    const { userId, postId, description } = arg.request; 
+
+    try {
+        const post = await Post.findById(postId);
+        const comments = post.comments;
+        const user = await User.findById(userId);
+        const newComment = {
+            _id: new ObjectId(),
+            description: description,
+            userId: userId,
+            userFullName: user.fullName,
+            createdAt: new Date(),
+        }
+        comments.unshift(newComment);
+        post.numComments = comments.length;
+        post.save();
+    } catch (err) {
+        //TODO: handle error
+    }
+}
+
+export { createPost, getAllPost, getPost, commentPost };
