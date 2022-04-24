@@ -24,14 +24,23 @@ const schema = gql`
         description: String!
     }
 
+    input CommentRequest {
+        userId: ID!
+        postId: ID!
+        description: String!
+    }
+
     type Likes {
+        userId: ID!
         userFullName: String!
     }
 
     type Comment {
         id: ID!
+        userId: ID!
         userFullName: String!
         description: String!
+        createdAt: String!
     }
 
     type Post {
@@ -42,19 +51,23 @@ const schema = gql`
         date: String!
         tag: String
         description: String
+        numLikes: Int
         likes: [Likes]
+        numComments: Int
         comments: [Comment]
     }
 
     type Query {
         user(id: ID!): User
         allPost: [Post]
+        post(id: ID!): Post
     }
 
     type Mutation {
         login(username: String!, password: String!): LoginResponse
         register(request: RegisterRequest): String
         createPost(request: CreatePostRequest): String
+        comment(request: CommentRequest): String
     }
 `;
 
