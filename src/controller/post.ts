@@ -39,14 +39,21 @@ const getAllPost = async () => {
                 description: post.description,
                 numLikes: post.numLikes,
                 numComments: post.numComments,
-                likes: post.likes,
-                comments: {
-                    id: post._id,
-                    userId: post.userId,
-                    userFullName: post.userFullName,
-                    description: post.description,
-                    createdAt: post.createdAt,
-                },
+                likes: post.likes.map((like: any) => {
+                    return {
+                        userId: like.userId!,
+                        userFullName: like.userFullName,
+                    }
+                }),
+                comments: post.comments.map((comment: any) => {
+                    return {
+                        id: comment._id,
+                        userId: comment.userId!,
+                        userFullName: comment.userFullName,
+                        description: comment.description,
+                        createdAt: comment.createdAt.toISOString(),
+                    }
+                }),
             });
         }
         return allPost;
@@ -104,9 +111,36 @@ const commentPost = async (_: any, arg: any) => {
         comments.unshift(newComment);
         post.numComments = comments.length;
         post.save();
+
+        return "success";
     } catch (err) {
         //TODO: handle error
     }
 }
 
-export { createPost, getAllPost, getPost, commentPost };
+const likePost = async (_: any, arg: any) => {
+    const { userId, postId, like } = arg.request;
+
+    try {
+        const post = await Post.findById(postId);
+        let likes = post.likes;
+        if (like) {
+            const user = await User.findById(userId);
+            likes.push({
+                userId: userId,
+                userFullName: user.fullName,
+            });
+        } else {
+            likes = likes.filter((e: any) => e.userId !== userId);
+            post.likes = likes;
+        }
+        post.numLikes = likes.length;
+        post.save();
+
+        return "success";
+    } catch (err) {
+        //TODO: handle error
+    }
+};
+
+export { createPost, getAllPost, getPost, likePost, commentPost };
