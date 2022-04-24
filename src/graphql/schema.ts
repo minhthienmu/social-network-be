@@ -24,6 +24,12 @@ const schema = gql`
         description: String!
     }
 
+    input LikeRequest {
+        postId: ID!
+        userId: ID!
+        like: Boolean!
+    }
+
     input CommentRequest {
         userId: ID!
         postId: ID!
@@ -68,6 +74,7 @@ const schema = gql`
         register(request: RegisterRequest): String
         createPost(request: CreatePostRequest): String
         comment(request: CommentRequest): String
+        like(request: LikeRequest): String
     }
 `;
 
