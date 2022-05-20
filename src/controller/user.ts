@@ -1,9 +1,7 @@
 import User from "../model/user";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-const access_token_secret =
-  "c7ee923a448307b4d03f86721244f7f7439de25b68f47d59121a05d004495eb48ee5bacf89fd881157bbdc06d7db57dbb2066b0ab059c679969bc843205fb6df";
+import { ACCESS_TOKEN_SECRET } from "../constanst/constanst";
 
 const getUser = (id: string) => {
     return {
@@ -62,12 +60,11 @@ const login = async (_: any, arg: any) => {
             );
 
             if (!passwordIsValid) {
-                //TODO: handle !passwordIsValid
                 return;
             }
             const token = jwt.sign(
                 { id: user._id },
-                process.env.ACCESS_TOKEN_SECRET || access_token_secret,
+                ACCESS_TOKEN_SECRET || "",
                 {
                     expiresIn: 86400
                 }
@@ -83,10 +80,10 @@ const login = async (_: any, arg: any) => {
 
             return data;
         } else {
-            //TODO: handle !user
+           //TODO: handle !passwordIsValid
         }
     } catch (error) {
-        //TODO: handle error
+        //TODO: handle !passwordIsValid
     }
 }
 
