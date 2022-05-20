@@ -1,3 +1,4 @@
+import { MONGODB_SERVER, MONGODB_USER, MONGODB_PASSWORD } from './src/constanst/constanst';
 import http from "http";
 import express, { Application, Request, Response } from "express";
 import { ApolloServer } from "apollo-server-express";
@@ -19,10 +20,10 @@ import resolvers from "./src/graphql/resolver";
 
   //DATABASE
   mongoose.connect(
-    "mongodb+srv://team.utzoz.azure.mongodb.net/social-network?retryWrites=true&w=majority",
+    MONGODB_SERVER,
     {
-      user: "Thien",
-      pass: "UjTtnz1aeUyQnjZc",
+      user: MONGODB_USER,
+      pass: MONGODB_PASSWORD,
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useFindAndModify: false
