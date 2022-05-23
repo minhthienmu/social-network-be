@@ -4,10 +4,14 @@ const UserSchema: Schema = new Schema(
     {
         username: { type: String, required: true },
         password: { type: String, required: true },
+        email: { type: String },
         fullName: { type: String },
-        posts: Array,
-        followers: Array,
-        following: Array,
+        birthday: { type: String },
+        phoneNumber: { type: String },
+        avatar: { type: String },
+        coverImage: { type: String },
+        follow: { type: String },
+        chatRoom: Array,
         isDeleted: { type: Boolean, required: true },
     },
     {

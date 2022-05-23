@@ -8,11 +8,11 @@ const PostSchema: Schema = new Schema(
         image: String,
         description: String,
         numLikes: Number,
-        likes: Array,
         numComments: Number,
-        comments: Array,
         rate: Number,
         isDeleted: Boolean,
+        commentId: String,
+        likeId: String,
     },
     {
         timestamps: true,
