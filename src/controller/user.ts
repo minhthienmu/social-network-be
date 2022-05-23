@@ -1,27 +1,38 @@
 import User from "../model/user";
+import Follow from "../model/follow";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET } from "../constanst/constanst";
+import { ApolloError } from "apollo-server-core";
 
-const getUser = (id: string) => {
-    return {
-            id: "1",
-            username: "thientm",
-            fullName: "Thiện",
-            isDelete: false,
-    };
+const getUser = async (_: any, arg: any) => {
+    const { id } = arg;
+
+    try {
+        const user = await User.findById(id);
+        return {
+            id: user._id,
+            username: user.username,
+            fullName: user.fullName,
+            email: user.email,
+            birthday: user.birthday,
+            avatar: user.avatar,
+            coverImage: user.coverImage,
+            phoneNumber: user.phoneNumber,
+        }
+    } catch (error) {
+        return error;
+    }
 }
 
 const validateUser = async (username: String) => {
     try {
         const user = await User.findOne({username: username});
         if (user) {
-            //TODO: handle exist user
             return false;
         } 
         return true;
     } catch (error) {
-        //TODO: handle error
         throw new Error("error");
     }
 }
@@ -31,21 +42,32 @@ const register = async (_: any, arg: any) => {
     const validUser = await validateUser(request.username);
     if (validUser) {
         try {
+            const follow = new Follow({
+                follower: [],
+                following: [],
+            })
+            follow.save();
             const user = new User({
+                email: request.email,
                 username: request.username,
                 password: bcrypt.hashSync(request.password, 8),
                 fullName: request.fullName,
+                birthday: "",
+                phoneNumber: "",
                 isDeleted: false,
+                avatar: "",
+                coverImage: "",
+                chatRoom: [],
+                follow: follow._id,
             });
             await user.save();
 
             return "success";
         } catch (error) {
-            //TODO: handle error
-            return "error";
+            return error;
         }
     } else {
-        //TODO: handle error
+        return "failed";
     }
 }
 
@@ -60,7 +82,7 @@ const login = async (_: any, arg: any) => {
             );
 
             if (!passwordIsValid) {
-                return;
+                throw new ApolloError("Invalid Password!");
             }
             const token = jwt.sign(
                 { id: user._id },
@@ -75,6 +97,7 @@ const login = async (_: any, arg: any) => {
                     id: user._id,
                     username: user.username,
                     fullName: user.fullName,
+                    email: user.email,
                 },
             }
 
@@ -84,6 +107,7 @@ const login = async (_: any, arg: any) => {
         }
     } catch (error) {
         //TODO: handle !passwordIsValid
+        return error;
     }
 }
 

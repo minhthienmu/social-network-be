@@ -3,39 +3,66 @@ import Post from "../model/post";
 import User from "../model/user";
 import Provider from "../model/provider";
 import Service from "../model/service";
+import { updateRatingProviderService } from "./provider";
+import { UpdateRatingType } from "../constanst/enum";
+import Like from "../model/like";
+import Comment from "../model/comment";
 
 const createPost = async (_: any, arg: any) => {
     const { request } = arg; 
+    const { userId, providerId, serviceId, image, description, rate } = request;
 
     try {
-        const newPost = new Post({
-            userId: request.userId,
-            providerId: request.providerId,
-            serviceId: request.serviceId,
-            image: request.image,
-            description: request.description,
-            rate: request.rate,
-            numLikes: 0,
-            likes: [],
-            numComments: 0,
-            comments: [],
-            isDeleted: false,
+        const newLike = new Like({
+            userIds: [],
         });
+        const newComment = new Comment({
+            comments: [],
+        });
+        await newLike.save();
+        await newComment.save();
+        const newPost = new Post({
+            userId: userId,
+            providerId: providerId,
+            serviceId: serviceId,
+            image: image,
+            description: description,
+            rate: rate,
+            numLikes: 0,
+            numComments: 0,
+            isDeleted: false,
+            commentId: newComment._id,
+            likeId: newLike._id,
+        });
+        updateRatingProviderService(providerId, serviceId, Number(rate), UpdateRatingType.Create);
         await newPost.save();
+
+        return "success";
     } catch (err) {
-        //TODO: handle error
+        return err;
     }
 }
 
 const getAllPost = async (_: any, arg: any) => {
-    const { last } = arg;
+    const { request } = arg;
+    const { last, currentUserId, providerId, userId } = request;
     try {
-        const res = await Post.find({}).sort({"createdAt": -1}).skip(last).limit(20);
+        const query: any = {};
+        if (providerId) query["providerId"] = providerId;
+        if (userId) query["userId"] = userId;
+        const res = await Post.find(query).sort({"createdAt": -1}).skip(last).limit(20);
         const allPost: any = [];
         for (let post of res) {
-            const user = await User.findById(post.userId);
-            const provider = await Provider.findById(post.providerId);
-            const service = await Service.findById(post.serviceId);
+            const userPromise = User.findById(post.userId);
+            const providerPromise = Provider.findById(post.providerId);
+            const servicePromise = Service.findById(post.serviceId);
+            const likePromise = Like.findById(post.likeId);
+            const user = await userPromise;
+            const provider = await providerPromise;
+            const service = await servicePromise;
+            const like = await likePromise;
+            const userLike = like.userIds ?? [];
+            const isLikeByUser = !!userLike.find((user: any) => user.userId === currentUserId);
             allPost.push({
                 id: post._id,
                 userId: post.userId!,
@@ -50,26 +77,13 @@ const getAllPost = async (_: any, arg: any) => {
                 description: post.description,
                 numLikes: post.numLikes,
                 numComments: post.numComments,
-                likes: post.likes.map((like: any) => {
-                    return {
-                        userId: like.userId!,
-                        userFullName: like.userFullName,
-                    }
-                }),
-                // comments: post.comments.map((comment: any) => {
-                //     return {
-                //         id: comment._id,
-                //         userId: comment.userId!,
-                //         userFullName: comment.userFullName,
-                //         description: comment.description,
-                //         createdAt: comment.createdAt.toISOString(),
-                //     }
-                // }),
+                isLikeByUser: isLikeByUser,
             });
         }
+
         return allPost;
     } catch (err) {
-        //TODO: handle error
+        return err;
     }
 }
 
@@ -101,7 +115,28 @@ const getPost = async (_: any, arg: any) => {
         };
         return res;
     } catch (err) {
-        //TODO: handle error
+        return err;
+    }
+}
+
+const getCommentPost = async (_: any, arg: any) => {
+    const { postId } = arg;
+
+    try {
+        const post = await Post.findById(postId);
+        const comment = await Comment.findById(post.commentId);
+        const res = comment.comments.map((item: any) => {
+            return {
+                id: item._id,
+                userId: item.userId!,
+                userFullName: item.userFullName,
+                description: item.description,
+                createdAt: item.createdAt.toISOString(),
+            }
+        });
+        return res;
+    } catch (error) {
+        return error;
     }
 }
 
@@ -110,8 +145,10 @@ const commentPost = async (_: any, arg: any) => {
 
     try {
         const post = await Post.findById(postId);
-        const comments = post.comments;
-        const user = await User.findById(userId);
+        const commentPromise = Comment.findById(post.commentId);
+        const userPromise = User.findById(userId);
+        const comment = await commentPromise;
+        const user = await userPromise;
         const newComment = {
             _id: new ObjectId(),
             description: description,
@@ -119,13 +156,16 @@ const commentPost = async (_: any, arg: any) => {
             userFullName: user.fullName,
             createdAt: new Date(),
         }
+        const comments = comment.comments;
         comments.unshift(newComment);
         post.numComments = comments.length;
         post.save();
+        comment.markModified("comments");
+        comment.save();
 
         return "success";
     } catch (err) {
-        //TODO: handle error
+        return err;
     }
 }
 
@@ -134,24 +174,27 @@ const likePost = async (_: any, arg: any) => {
 
     try {
         const post = await Post.findById(postId);
-        let likes = post.likes;
+        const likeObj = await Like.findById(post.likeId);
+        let likeUsers = likeObj.userIds;
         if (like) {
             const user = await User.findById(userId);
-            likes.push({
+            likeUsers.push({
                 userId: userId,
                 userFullName: user.fullName,
             });
         } else {
-            likes = likes.filter((e: any) => e.userId !== userId);
-            post.likes = likes;
+            likeUsers = likeUsers.filter((e: any) => e.userId !== userId);
+            likeObj.userIds = likeUsers;
         }
-        post.numLikes = likes.length;
+        likeObj.markModified("userIds");
+        likeObj.save();
+        post.numLikes = likeUsers.length;
         post.save();
 
         return "success";
     } catch (err) {
-        //TODO: handle error
+       return err;
     }
 };
 
-export { createPost, getAllPost, getPost, likePost, commentPost };
+export { createPost, getAllPost, getPost, likePost, commentPost, getCommentPost };

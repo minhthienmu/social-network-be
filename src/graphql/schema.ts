@@ -2,21 +2,11 @@ import { gql } from "apollo-server-express";
 
 const schema = gql`
     input RegisterRequest {
+        email: String!
         username: String!
         password: String!
         fullName: String!
     } 
-
-    type LoginResponse {
-        token: String!
-        user: User
-    }
-
-    type User {
-        id: ID!
-        username: String!
-        fullName: String!
-    }
 
     input CreatePostRequest {
         userId: ID!
@@ -42,10 +32,34 @@ const schema = gql`
     input CreateProviderRequest {
         name: String!
         address: String!
+        serviceId: String
     }
 
     input CreateServiceRequest {
         name: String!
+    }
+
+    input queryAllPostRequest {
+        last: Int!
+        currentUserId: String!
+        providerId: String
+        userId: String
+    }
+
+    type LoginResponse {
+        token: String
+        user: User
+    }
+
+    type User {
+        id: ID
+        username: String
+        fullName: String
+        email: String
+        birthday: String
+        avatar: String
+        coverImage: String
+        phoneNumber: String
     }
 
     type Likes {
@@ -65,24 +79,32 @@ const schema = gql`
         id: ID!
         userId: ID!
         userFullName: String!
+        avatar: String
         providerId: ID
         providerName: String
         serviceId: ID
         serviceName: String
         image: String
-        date: String!
+        date: String
+        rate: Float
         description: String
         numLikes: Int
-        likes: [Likes]
         numComments: Int
-        comments: [Comment]
-        rate: Float
+        isLikeByUser: Boolean
     }
 
     type Provider {
         id: ID!
         name: String!
         address: String!
+        serviceRate: [ServiceRate]
+    }
+
+    type ServiceRate {
+        serviceId: String
+        serviceName: String
+        sumRating: Float
+        totalRating: Int
     }
 
     type Service {
@@ -90,20 +112,14 @@ const schema = gql`
         name: String!
     }
 
-    type ProviderInfo {
-        id: ID!
-        name: String!
-        address: String!
-    }
-
     type Query {
         user(id: ID!): User
-        allPost(last: Int): [Post]
+        allPost(request: queryAllPostRequest): [Post]
         post(id: ID!): Post
         allProvider(last: Int): [Provider]
         allService: [Service]
-        isUserOrProvider(id: ID!): String
-        providerInfo(id: ID!): ProviderInfo
+        providerInfo(id: ID!): Provider
+        commentPost(postId: ID!): [Comment]
     }
 
     type Mutation {
