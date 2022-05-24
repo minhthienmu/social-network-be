@@ -120,6 +120,9 @@ const schema = gql`
         allService: [Service]
         providerInfo(id: ID!): Provider
         commentPost(postId: ID!): [Comment]
+        follower(userId: ID!, last: Int): [User]
+        following(userId: ID!, last: Int): [User]
+        isFollowing(followerId: ID!, followingId: ID!): String
     }
 
     type Mutation {
@@ -130,6 +133,8 @@ const schema = gql`
         like(request: LikeRequest): String
         createProvider(request: CreateProviderRequest): String
         createService(request: CreateServiceRequest): String
+        follow(followerId: ID!, followingId: ID!): String
+        unfollow(unfollowerId: ID!, followingId: ID!): String
     }
 `;
 

@@ -2,6 +2,7 @@ import { getUser, login, register } from "../controller/user";
 import { createPost, getAllPost, getPost, commentPost, likePost, getCommentPost } from "../controller/post";
 import { createProvider, getAllProvider, getProviderInfo } from '../controller/provider';
 import { createService, getAllService } from '../controller/service';
+import { follow, getFollower, getFollowing, isFollowing, unfollow } from "../controller/follow";
 
 const resolvers = {
     Query: {
@@ -12,6 +13,9 @@ const resolvers = {
         allService: getAllService,
         providerInfo: getProviderInfo,
         commentPost: getCommentPost,
+        follower: getFollower,
+        following: getFollowing,
+        isFollowing: isFollowing,
     },
     Mutation: {
         register: register,
@@ -21,6 +25,8 @@ const resolvers = {
         like: likePost,
         createProvider: createProvider,
         createService: createService,
+        follow: follow,
+        unfollow: unfollow,
     }
 }
 
