@@ -3,6 +3,7 @@ import { createPost, getAllPost, getPost, commentPost, likePost, getCommentPost 
 import { createProvider, getAllProvider, getProviderInfo } from '../controller/provider';
 import { createService, getAllService } from '../controller/service';
 import { follow, getFollower, getFollowing, isFollowing, unfollow } from "../controller/follow";
+import { search } from "../controller/search";
 
 const resolvers = {
     Query: {
@@ -16,6 +17,7 @@ const resolvers = {
         follower: getFollower,
         following: getFollowing,
         isFollowing: isFollowing,
+        search: search,
     },
     Mutation: {
         register: register,

@@ -76,9 +76,9 @@ const schema = gql`
     }
 
     type Post {
-        id: ID!
-        userId: ID!
-        userFullName: String!
+        id: ID
+        userId: ID
+        userFullName: String
         avatar: String
         providerId: ID
         providerName: String
@@ -94,9 +94,9 @@ const schema = gql`
     }
 
     type Provider {
-        id: ID!
-        name: String!
-        address: String!
+        id: ID
+        name: String
+        address: String
         serviceRate: [ServiceRate]
     }
 
@@ -112,6 +112,12 @@ const schema = gql`
         name: String!
     }
 
+    type Search {
+        user: [User]
+        provider: [Provider]
+        post: [Post]
+    }
+
     type Query {
         user(id: ID!): User
         allPost(request: queryAllPostRequest): [Post]
@@ -123,6 +129,7 @@ const schema = gql`
         follower(userId: ID!, last: Int): [User]
         following(userId: ID!, last: Int): [User]
         isFollowing(followerId: ID!, followingId: ID!): String
+        search(keyword: String!): Search
     }
 
     type Mutation {
