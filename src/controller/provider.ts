@@ -22,7 +22,7 @@ const createProvider = async (_: any, arg: any) => {
         });
         await newProvider.save();
 
-        return "success";
+        return newProvider._id;
     } catch (err) {
         return err;
     }
