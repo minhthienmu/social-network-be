@@ -6,9 +6,7 @@ const getAllNotification = async (_: any, arg: any) => {
 
     try {
         const user = await User.findById(userId);
-        console.log(user);
         const notificationObj = await Notification.findById(user.notification);
-        console.log(notificationObj);
         const notification = notificationObj.notification.slice(Number(last) - 5, last);
         const res = notification.map((item: any) => {
             return {
