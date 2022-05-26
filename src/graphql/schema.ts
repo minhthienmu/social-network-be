@@ -118,6 +118,15 @@ const schema = gql`
         post: [Post]
     }
 
+    type Notification {
+        id: ID
+        fromUserId: String
+        toUserId: String
+        fromUserFullName: String
+        postId: String
+        type: String
+    }
+
     type Query {
         user(id: ID!): User
         allPost(request: queryAllPostRequest): [Post]
@@ -130,6 +139,7 @@ const schema = gql`
         following(userId: ID!, last: Int): [User]
         isFollowing(followerId: ID!, followingId: ID!): String
         search(keyword: String!): Search
+        notification(userId: ID!, last: Int): [Notification]
     }
 
     type Mutation {
@@ -142,7 +152,12 @@ const schema = gql`
         createService(request: CreateServiceRequest): String
         follow(followerId: ID!, followingId: ID!): String
         unfollow(unfollowerId: ID!, followingId: ID!): String
+        sendMessage(message: String): String
     }
+
+    type Subscription {
+        notification(userId: ID!): Notification
+    }      
 `;
 
 export default schema;

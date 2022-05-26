@@ -1,5 +1,9 @@
 import Follow from "../model/follow";
 import User from "../model/user";
+import Notification from "../model/notification";
+import { pubsub } from './../../index';
+import user from "../model/user";
+import { ObjectId } from "mongodb";
 
 const follow = async (_: any, arg: any) => {
     const { followerId, followingId } = arg;
@@ -24,6 +28,33 @@ const follow = async (_: any, arg: any) => {
         followingObj.follower.push(followerId);
         followingObj.markModified("follower");
         followingObj.save();
+
+        //SEND NOFICATION
+        if (!following.notification) {
+            const notification = new Notification({
+                notification: [],
+            });
+            await notification.save()
+            following.notification = notification._id;
+            following.markModified("notification");
+            following.save();
+        }
+        const notificationObj = await Notification.findById(following.notification);
+        const newNotification = {
+            id: new ObjectId(),
+            fromUserId: followerId,
+            toUserId: followingId,
+            fromUserFullName: follower.fullName,
+            postId: "",
+            type: "follow",
+        };
+        notificationObj.notification.unshift(newNotification);
+        notificationObj.markModified("notification");
+        notificationObj.save();
+
+        pubsub.publish("NOTIFICATION", {
+            notification: newNotification
+        });
         
         return "success";
     } catch (error) {

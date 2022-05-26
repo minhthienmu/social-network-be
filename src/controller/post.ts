@@ -7,6 +7,8 @@ import { updateRatingProviderService } from "./provider";
 import { UpdateRatingType } from "../constanst/enum";
 import Like from "../model/like";
 import Comment from "../model/comment";
+import Notification from "../model/notification";
+import { pubsub } from './../../index';
 
 const createPost = async (_: any, arg: any) => {
     const { request } = arg; 
@@ -163,6 +165,34 @@ const commentPost = async (_: any, arg: any) => {
         comment.markModified("comments");
         comment.save();
 
+        //SEND NOFICATION
+        //TODO: fix lỗi
+        if (!user.notification) {
+            const notification = new Notification({
+                notification: [],
+            });
+            await notification.save()
+            user.notification = notification._id;
+            user.markModified("notification");
+            user.save();
+        }
+        const notificationObj = await Notification.findById(user.notification);
+        const newNotification = {
+            id: new ObjectId(),
+            fromUserId: userId,
+            toUserId: post.userId,
+            fromUserFullName: user.fullName,
+            postId: postId,
+            type: "comment",
+        };
+        notificationObj.notification.unshift(newNotification);
+        notificationObj.markModified("notification");
+        notificationObj.save();
+
+        pubsub.publish("NOTIFICATION", {
+            notification: newNotification
+        });
+
         return "success";
     } catch (err) {
         return err;
@@ -182,6 +212,36 @@ const likePost = async (_: any, arg: any) => {
                 userId: userId,
                 userFullName: user.fullName,
             });
+
+            //SEND NOFICATION
+            //TODO: fix lỗi
+            if (like) {
+                if (!user.notification) {
+                    const notification = new Notification({
+                        notification: [],
+                    });
+                    await notification.save()
+                    user.notification = notification._id;
+                    user.markModified("notification");
+                    user.save();
+                }
+                const notificationObj = await Notification.findById(user.notification);
+                const newNotification = {
+                    id: new ObjectId(),
+                    fromUserId: userId,
+                    toUserId: post.userId,
+                    fromUserFullName: user.fullName,
+                    postId: postId,
+                    type: "like",
+                };
+                notificationObj.notification.unshift(newNotification);
+                notificationObj.markModified("notification");
+                notificationObj.save();
+                
+                pubsub.publish("NOTIFICATION", {
+                    notification: newNotification
+                });
+            }
         } else {
             likeUsers = likeUsers.filter((e: any) => e.userId !== userId);
             likeObj.userIds = likeUsers;

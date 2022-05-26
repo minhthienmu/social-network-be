@@ -12,6 +12,7 @@ const UserSchema: Schema = new Schema(
         coverImage: { type: String },
         follow: { type: String },
         chatRoom: Array,
+        notification: String,
         isDeleted: { type: Boolean, required: true },
     },
     {
