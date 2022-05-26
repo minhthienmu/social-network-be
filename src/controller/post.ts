@@ -166,32 +166,37 @@ const commentPost = async (_: any, arg: any) => {
         comment.save();
 
         //SEND NOFICATION
-        //TODO: fix lỗi
-        if (!user.notification) {
-            const notification = new Notification({
-                notification: [],
-            });
-            await notification.save()
-            user.notification = notification._id;
-            user.markModified("notification");
-            user.save();
-        }
-        const notificationObj = await Notification.findById(user.notification);
-        const newNotification = {
-            id: new ObjectId(),
-            fromUserId: userId,
-            toUserId: post.userId,
-            fromUserFullName: user.fullName,
-            postId: postId,
-            type: "comment",
-        };
-        notificationObj.notification.unshift(newNotification);
-        notificationObj.markModified("notification");
-        notificationObj.save();
+        if (userId !== post.userId) {
+            const toUser = await User.findById(post.userId);
+            if (!toUser.notification) {
+                const notification = new Notification({
+                    notification: [],
+                });
+                await notification.save();
+                toUser.notification = notification._id;
+                toUser.markModified("notification");
+                toUser.save();
+            }
+            const notificationObj = await Notification.findById(
+                toUser.notification
+            );
+            const newNotification = {
+                id: new ObjectId(),
+                fromUserId: userId,
+                toUserId: post.userId,
+                fromUserFullName: user.fullName,
+                postId: postId,
+                type: "comment",
+            };
+            notificationObj.notification.unshift(newNotification);
+            notificationObj.markModified("notification");
+            notificationObj.save();
 
-        pubsub.publish("NOTIFICATION", {
-            notification: newNotification
-        });
+            pubsub.publish("NOTIFICATION", {
+                notification: newNotification,
+            });
+        }
+        
 
         return "success";
     } catch (err) {
@@ -214,18 +219,18 @@ const likePost = async (_: any, arg: any) => {
             });
 
             //SEND NOFICATION
-            //TODO: fix lỗi
-            if (like) {
-                if (!user.notification) {
+            if (userId !== post.userId) {
+                const toUser = await User.findById(post.userId);
+                if (!toUser.notification) {
                     const notification = new Notification({
                         notification: [],
                     });
                     await notification.save()
-                    user.notification = notification._id;
-                    user.markModified("notification");
-                    user.save();
+                    toUser.notification = notification._id;
+                    toUser.markModified("notification");
+                    toUser.save();
                 }
-                const notificationObj = await Notification.findById(user.notification);
+                const notificationObj = await Notification.findById(toUser.notification);
                 const newNotification = {
                     id: new ObjectId(),
                     fromUserId: userId,
@@ -237,7 +242,7 @@ const likePost = async (_: any, arg: any) => {
                 notificationObj.notification.unshift(newNotification);
                 notificationObj.markModified("notification");
                 notificationObj.save();
-                
+    
                 pubsub.publish("NOTIFICATION", {
                     notification: newNotification
                 });
