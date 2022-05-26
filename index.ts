@@ -9,6 +9,12 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 import schema from "./src/graphql/schema";
 import resolvers from "./src/graphql/resolver";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/lib/use/ws";
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { PubSub } from 'graphql-subscriptions';
+
+export const pubsub = new PubSub();
 
 (async function startApolloServer() {
   const app: Application = express();
@@ -52,12 +58,35 @@ import resolvers from "./src/graphql/resolver";
     });
   });
 
+  const gqlSchema = makeExecutableSchema({ typeDefs: schema, resolvers });
+
   const httpServer = http.createServer(app);
+
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: '/graphql',
+  });
+
+  const serverCleanup = useServer(
+    { schema: gqlSchema },
+    wsServer
+  );
+
   const server = new ApolloServer({
-    typeDefs: schema,
-    resolvers: resolvers,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-  })
+    schema: gqlSchema,
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
+  });
 
   await server.start();
 

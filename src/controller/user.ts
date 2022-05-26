@@ -1,5 +1,6 @@
 import User from "../model/user";
 import Follow from "../model/follow";
+import Notification from "../model/notification";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET } from "../constanst/constanst";
@@ -46,7 +47,11 @@ const register = async (_: any, arg: any) => {
                 follower: [],
                 following: [],
             })
-            follow.save();
+            const notification = new Notification({
+                notification: [],
+            });
+            await follow.save();
+            await notification.save();
             const user = new User({
                 email: request.email,
                 username: request.username,
@@ -59,6 +64,7 @@ const register = async (_: any, arg: any) => {
                 coverImage: "",
                 chatRoom: [],
                 follow: follow._id,
+                notification: notification._id,
             });
             await user.save();
 
