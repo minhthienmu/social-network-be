@@ -153,6 +153,7 @@ const schema = gql`
     }
 
     type Query {
+        allUser: [User]
         user(id: ID!): User
         allPost(request: queryAllPostRequest): [Post]
         post(id: ID!): Post
@@ -171,6 +172,7 @@ const schema = gql`
 
     type Mutation {
         login(username: String!, password: String!): LoginResponse
+        loginAdmin(username: String!, password: String!): String
         register(request: RegisterRequest): String
         createPost(request: CreatePostRequest): String
         comment(request: CommentRequest): String
