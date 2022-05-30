@@ -183,6 +183,7 @@ const schema = gql`
         follow(followerId: ID!, followingId: ID!): String
         unfollow(unfollowerId: ID!, followingId: ID!): String
         sendMessage(request: SendMessageRequest): String
+        changePassword(userId: ID!, oldPassword: String!, newPassword: String!): String
     }
 
     type Subscription {
