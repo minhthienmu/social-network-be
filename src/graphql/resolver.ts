@@ -5,7 +5,7 @@ import { createProvider, getAllProvider, getProviderInfo } from '../controller/p
 import { createService, getAllService } from '../controller/service';
 import { follow, getFollower, getFollowing, isFollowing, unfollow } from "../controller/follow";
 import { search } from "../controller/search";
-import { sendMessage } from '../controller/message';
+import { getChatContact, getMessages, sendMessage } from '../controller/message';
 import { withFilter } from 'graphql-subscriptions';
 import { getAllNotification } from '../controller/notification';
 
@@ -23,6 +23,8 @@ const resolvers = {
         isFollowing: isFollowing,
         search: search,
         notification: getAllNotification,
+        chatContact: getChatContact,
+        message: getMessages
     },
     Mutation: {
         register: register,
@@ -44,6 +46,16 @@ const resolvers = {
                   payload.notification.fromUserId !== variables.userId
                 ) {
                   return true;
+                }
+                return false;
+            }),
+        },
+        message: {
+            subscribe: withFilter(() => pubsub.asyncIterator(['SEND_MESSAGE']), (payload: any, variables: any) => {
+                if (
+                    payload.message.to === variables.userId && payload.message.from !== variables.userId
+                ) {
+                    return true;
                 }
                 return false;
             }),

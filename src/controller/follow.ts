@@ -2,7 +2,6 @@ import Follow from "../model/follow";
 import User from "../model/user";
 import Notification from "../model/notification";
 import { pubsub } from './../../index';
-import user from "../model/user";
 import { ObjectId } from "mongodb";
 
 const follow = async (_: any, arg: any) => {

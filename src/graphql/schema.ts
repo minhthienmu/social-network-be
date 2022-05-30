@@ -46,6 +46,13 @@ const schema = gql`
         userId: String
     }
 
+    input SendMessageRequest {
+        id: ID
+        from: ID!
+        to: ID!
+        message: String!
+    }
+
     type LoginResponse {
         token: String
         user: User
@@ -127,6 +134,24 @@ const schema = gql`
         type: String
     }
 
+    type ChatContact {
+        id: ID
+        avatar: String
+        userId: ID
+        userFullName: String
+        lastMessage: String,
+        date: String
+    }
+
+    type Message {
+        id: ID!
+        from: ID!
+        to: ID!
+        message: String
+        date: String
+        chatRoomId: String
+    }
+
     type Query {
         user(id: ID!): User
         allPost(request: queryAllPostRequest): [Post]
@@ -140,6 +165,8 @@ const schema = gql`
         isFollowing(followerId: ID!, followingId: ID!): String
         search(keyword: String!): Search
         notification(userId: ID!, last: Int): [Notification]
+        chatContact(userId: ID!, last: Int): [ChatContact]
+        message(chatRoomId: ID!, last: Int): [Message]
     }
 
     type Mutation {
@@ -152,11 +179,12 @@ const schema = gql`
         createService(request: CreateServiceRequest): String
         follow(followerId: ID!, followingId: ID!): String
         unfollow(unfollowerId: ID!, followingId: ID!): String
-        sendMessage(message: String): String
+        sendMessage(request: SendMessageRequest): String
     }
 
     type Subscription {
         notification(userId: ID!): Notification
+        message(userId: ID!): Message
     }      
 `;
 
