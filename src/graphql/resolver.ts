@@ -1,5 +1,5 @@
 import { pubsub } from './../../index';
-import { getAllUser, getUser, login, loginAdmin, register } from "../controller/user";
+import { changePassword, getAllUser, getUser, login, loginAdmin, register } from "../controller/user";
 import { createPost, getAllPost, getPost, commentPost, likePost, getCommentPost } from "../controller/post";
 import { createProvider, getAllProvider, getProviderInfo } from '../controller/provider';
 import { createService, getAllService } from '../controller/service';
@@ -39,6 +39,7 @@ const resolvers = {
         follow: follow,
         unfollow: unfollow,
         sendMessage: sendMessage,
+        changePassword: changePassword,
     },
     Subscription: {
         notification: {

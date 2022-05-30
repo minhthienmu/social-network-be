@@ -170,4 +170,29 @@ const loginAdmin = async (_: any, arg: any) => {
     }
 };
 
-export { validateUser, getUser, login, register, loginAdmin, getAllUser };
+const changePassword = async (_: any, arg: any) => {
+    const { userId, oldPassword, newPassword } = arg;
+
+    try {
+        const user = await User.findById(userId);
+
+        const passwordIsValid = bcrypt.compareSync(
+            oldPassword,
+            user.password
+        );
+
+        if (!passwordIsValid) {
+            throw new ApolloError("Invalid Password!");
+        }
+
+        user.password = bcrypt.hashSync(newPassword, 8);
+        user.markModified("password");
+        await user.save();
+        
+        return "success";
+    } catch (error) {
+        return error;
+    }
+};
+
+export { validateUser, getUser, login, register, loginAdmin, getAllUser, changePassword };
