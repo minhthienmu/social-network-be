@@ -13,7 +13,8 @@ const UserSchema: Schema = new Schema(
         follow: { type: String },
         chatRoom: Array,
         notification: String,
-        isDeleted: { type: Boolean, required: true },
+        isDeleted: { type: Boolean },
+        role: { type: String }
     },
     {
         timestamps: true,

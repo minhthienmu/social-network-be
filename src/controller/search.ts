@@ -57,11 +57,13 @@ const search = async (_: any, arg: any) => {
         }
 
         for (let user of users) {
+          if (user.role === "2") {
             res.user.push({
-                id: user._id,
-                fullName: user.fullName,
-                avatar: user.avatar,
+              id: user._id,
+              fullName: user.fullName,
+              avatar: user.avatar,
             });
+          }
         }
         for (let provider of providers) {
             res.provider.push({

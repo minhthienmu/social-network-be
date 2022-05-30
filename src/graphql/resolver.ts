@@ -1,5 +1,5 @@
 import { pubsub } from './../../index';
-import { getUser, login, register } from "../controller/user";
+import { getAllUser, getUser, login, loginAdmin, register } from "../controller/user";
 import { createPost, getAllPost, getPost, commentPost, likePost, getCommentPost } from "../controller/post";
 import { createProvider, getAllProvider, getProviderInfo } from '../controller/provider';
 import { createService, getAllService } from '../controller/service';
@@ -11,6 +11,7 @@ import { getAllNotification } from '../controller/notification';
 
 const resolvers = {
     Query: {
+        allUser: getAllUser,
         user: getUser,
         allPost: getAllPost,
         post: getPost,
@@ -29,6 +30,7 @@ const resolvers = {
     Mutation: {
         register: register,
         login: login,
+        loginAdmin: loginAdmin,
         createPost: createPost,
         comment: commentPost,
         like: likePost,
