@@ -44,6 +44,7 @@ const schema = gql`
         currentUserId: String!
         providerId: String
         userId: String
+        myFeed: Boolean
     }
 
     input SendMessageRequest {

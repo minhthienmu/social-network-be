@@ -9,6 +9,7 @@ import Like from "../model/like";
 import Comment from "../model/comment";
 import Notification from "../model/notification";
 import { pubsub } from './../../index';
+import Follow from "../model/follow";
 
 const createPost = async (_: any, arg: any) => {
     const { request } = arg; 
@@ -47,12 +48,25 @@ const createPost = async (_: any, arg: any) => {
 
 const getAllPost = async (_: any, arg: any) => {
     const { request } = arg;
-    const { last, currentUserId, providerId, userId } = request;
+    const { last, currentUserId, providerId, userId, myFeed } = request;
     try {
         const query: any = {};
         if (providerId) query["providerId"] = providerId;
         if (userId) query["userId"] = userId;
-        const res = await Post.find(query).sort({"createdAt": -1}).skip(last).limit(20);
+        let res;
+        if (myFeed) {
+            const currentUser = await User.findById(currentUserId);
+            const follow = await Follow.findById(currentUser.follow);
+            const following = follow.following;
+            const or = following.map((item: any) => {
+                return {
+                    userId: item,
+                };
+            })
+            res = await Post.find(query).or(or).sort({"createdAt": -1}).skip(last).limit(20);
+        } else {
+            res = await Post.find(query).sort({"createdAt": -1}).skip(last).limit(20);
+        }
         const allPost: any = [];
         for (let post of res) {
             const userPromise = User.findById(post.userId);
